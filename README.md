@@ -19,13 +19,13 @@ tensorboardX  2.5
 tensorboard  1.14.0
 ```
  ## Predict
-Place the prediction data in ¡°predict_data¡±
+Place the prediction data in "predict_data"
 
 To identify whether peptides are ACPs, run:
 ```
-python predict.py -task 1
+python predict.py --task 1
 ```
 To predict whether ACPs show activity against the seven cancer types (Colon, Breast, Cervix, Skin, Lung, Prostate, and Blood), run:
 ```
-python predict.py -task 2
+python predict.py --task 2
 ```
