@@ -174,28 +174,28 @@ def load_pretrained_model(model_path, device,output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     input_fasta = "data/predict_data/"
-    parser.add_argument('-result_save', type=str,
+    parser.add_argument('--result_save', type=str,
                         default=f'{input_fasta}/result.txt',
                         help='Path to save results')
-    parser.add_argument('-task1_model', type=str, default='weights/binary_classification.pth', help='Path to trained model')
+    parser.add_argument('--task1_model', type=str, default='weights/binary_classification.pth', help='Path to trained model')
 
-    parser.add_argument('-task2_model', type=str, default='weights/multi-label-classification.pth',
+    parser.add_argument('--task2_model', type=str, default='weights/multi-label-classification.pth',
                         help='Path to trained model')
-    parser.add_argument('-task', type=str,
+    parser.add_argument('--task', type=str,
                         default='1',
                         help='1 is ACPs and non-ACPs classification, 2 is ACP Functional Activity Prediction')
 
-    parser.add_argument('-fasta', type=str, default=f'{input_fasta}ACP.fasta',
+    parser.add_argument('--fasta', type=str, default=f'{input_fasta}ACP.fasta',
                         help='Input files in fasta format')
-    parser.add_argument('-oa3m', type=str, default=f'{input_fasta}a3m_no_hhm/',
+    parser.add_argument('--oa3m', type=str, default=f'{input_fasta}a3m_no_hhm/',
                         help='Output folder saving o3m files')
 
     # trRosetta parameters
 
-    parser.add_argument('-tr_onpz', type=str, default=f'{input_fasta}npz_no_hhm/',
+    parser.add_argument('--tr_onpz', type=str, default=f'{input_fasta}npz_no_hhm/',
                         help='Output folder saving .npz files')
     # esm
-    parser.add_argument('-esm_opssm', type=str, default=f'{input_fasta}esm_t33/',
+    parser.add_argument('--esm_opssm', type=str, default=f'{input_fasta}esm_t33/',
                         help='Output folder saving .pssm files')
     args = parser.parse_args()
     # edit_inputname(args.i, "data/Cancerppd/cancerppd.fasta")
