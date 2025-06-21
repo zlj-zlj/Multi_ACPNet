@@ -1,0 +1,6 @@
+# Tools
+rosetta: utils/trRosetta/predict_many.py
+rosetta_model: utils/trRosetta/model2019_07
+
+
+
