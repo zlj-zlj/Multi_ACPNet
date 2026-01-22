@@ -23,9 +23,6 @@ rosetta_model = cfg['rosetta_model']
 def run(args):
     input_fasta = args.fasta
     sa3m_folder = args.oa3m
-    # with open(input_fasta, 'w') as f:
-    #     f.write(">0|ACP|test" + '\n')
-    #     f.write(args.seq)
 
 
     ids = []
@@ -58,11 +55,12 @@ def run(args):
                 f.write(seq)
 
 
-def seq_encode(input_dir,encoder, tokenizer):
+def seq_encode(input_dir,model):
     save_dir = args.esm_opssm
     os.makedirs(save_dir, exist_ok=True)
     names = []
     seqs = []
+
     with open(input_dir) as f:
         line_acp = f.readlines()
         file_name = 0
@@ -71,32 +69,19 @@ def seq_encode(input_dir,encoder, tokenizer):
             if line[0] == '>' and len(line) != 2:
                 name = line[1:].replace('|', '_')
                 names.append(name)
-            elif line[0] == '>' and len(line) ==2:
+            elif line[0] == '>' and len(line) == 2:
                 name = file_name
                 file_name += 1
                 names.append(name)
             else:
                 seqs.append(line)
     for index, acp in enumerate(seqs):
-        spaced_seq = " ".join(list(acp))
-        inputs = tokenizer.encode_plus(
-            spaced_seq,
-            return_tensors=None,
-            add_special_tokens=True,
-            max_length=300,
-            padding=True,
-            truncation=True
-        )
-        for k, v in inputs.items():
-            inputs[k] = torch.tensor(v, dtype=torch.long).unsqueeze(0).cuda()
-        with torch.no_grad():
-            outputs = encoder(input_ids=inputs['input_ids'], attention_mask=inputs['attention_mask'])
-        last_hidden_states = outputs[0]
-        encoded_seq = last_hidden_states[inputs['attention_mask'].bool()][1:-1]
-        encod = encoded_seq.cpu().numpy()
-        print(encod.shape)
+        protein = ESMProtein(sequence=acp)
+        encoded_seqs = model.encode(protein).sequence
 
-        savepath = os.path.join(save_dir,f'{names[index]}.npy')
+        embed = model(encoded_seqs.unsqueeze(0)).embeddings.to(torch.float32)
+        embeddings = embed.cpu().squeeze().numpy()
+        savepath = os.path.join(save_dir, f'{names[index]}.npy')
         np.save(savepath, encod)
     return names, seqs
 
@@ -105,21 +90,9 @@ def generate_features(args):
     subprocess.run(rosetta_cmd)
 
 
+    model = ESMC.from_pretrained("esmc_600m").to("cuda:0")
+    names, seqs = seq_encode(args.fasta, model)
 
-    model = "esm2_t33_650M_UR50D"
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        model)
-    config = AutoConfig.from_pretrained(model,output_hidden_states=True)
-    config.hidden_dropout = 0.
-    config.hidden_dropout_prob = 0.
-    config.attention_dropout = 0.
-    config.attention_probs_dropout_prob = 0.
-    encoder = AutoModel.from_pretrained(model, config=config).to(device).eval()
-    print("model loaded")
-    names, seqs = seq_encode(args.fasta,encoder, tokenizer)
 
     return names, seqs
 
@@ -174,31 +147,31 @@ def load_pretrained_model(model_path, device,output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     input_fasta = "data/predict_data/"
-    parser.add_argument('--result_save', type=str,
+    parser.add_argument('-result_save', type=str,
                         default=f'{input_fasta}/result.txt',
                         help='Path to save results')
-    parser.add_argument('--task1_model', type=str, default='weights/binary_classification.pth', help='Path to trained model')
+    parser.add_argument('-task1_model', type=str, default='weights/binary_classification.pth', help='Path to trained model')
 
-    parser.add_argument('--task2_model', type=str, default='weights/multi-label-classification.pth',
+    parser.add_argument('-task2_model', type=str, default='weights/multi_label_classification.pth',
                         help='Path to trained model')
-    parser.add_argument('--task', type=str,
+    parser.add_argument('-task', type=str,
                         default='1',
                         help='1 is ACPs and non-ACPs classification, 2 is ACP Functional Activity Prediction')
 
-    parser.add_argument('--fasta', type=str, default=f'{input_fasta}ACP.fasta',
+    parser.add_argument('-fasta', type=str, default=f'{input_fasta}ACP.fasta',
                         help='Input files in fasta format')
-    parser.add_argument('--oa3m', type=str, default=f'{input_fasta}a3m_no_hhm/',
+    parser.add_argument('-oa3m', type=str, default=f'{input_fasta}a3m_no_hhm/',
                         help='Output folder saving o3m files')
 
     # trRosetta parameters
 
-    parser.add_argument('--tr_onpz', type=str, default=f'{input_fasta}npz_no_hhm/',
+    parser.add_argument('-tr_onpz', type=str, default=f'{input_fasta}npz_no_hhm/',
                         help='Output folder saving .npz files')
     # esm
-    parser.add_argument('--esm_opssm', type=str, default=f'{input_fasta}esm_t33/',
+    parser.add_argument('-esm_opssm', type=str, default=f'{input_fasta}esm_t33/',
                         help='Output folder saving .pssm files')
     args = parser.parse_args()
-    # edit_inputname(args.i, "data/Cancerppd/cancerppd.fasta")
+
 
 
 
