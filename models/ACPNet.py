@@ -1,23 +1,11 @@
 import torch.nn.functional as F
-from torch_geometric.nn import GATConv, LayerNorm, global_max_pool, global_mean_pool, GCNConv,GINConv,DenseGCNConv, dense_diff_pool
-from torch_geometric.nn import TopKPooling
-from torch_geometric.nn.pool.topk_pool import topk
-from torch_geometric.nn.pool import topk_pool
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import os
-import torch_geometric as Pyg
-from torch_geometric.utils import to_dense_adj, to_dense_batch
-import torch.nn as nn
-from torch.nn import Linear
-from torch_geometric.utils import dense_to_sparse
-import torch
+from torch_geometric.nn import global_mean_pool,global_max_pool, GCNConv ,DenseGCNConv, dense_diff_pool,LayerNorm
 
-# 导入库
+from torch_geometric.utils import to_dense_adj
+from torch_geometric.utils import dense_to_sparse
+from torch_geometric.nn import TopKPooling
 import torch
 import torch.nn as nn
-# Applies weight normalization to a parameter in the given module.
 from torch.nn.utils import weight_norm
 
 
@@ -139,8 +127,6 @@ class MultiScaleGCN(torch.nn.Module):
             h += self.residual(x)
         return h
 
-
-
 class ACPNet(nn.Module):
     def __init__(self, hidden_dim, output_dim, dropout_rate=0.5):
 
@@ -153,7 +139,7 @@ class ACPNet(nn.Module):
 
         self.dropout_rate = dropout_rate
         self.lstm = nn.LSTM(
-            input_size=1280,
+            input_size=1152,
             hidden_size=512,
             num_layers=1,
             bidirectional=True,
@@ -161,14 +147,9 @@ class ACPNet(nn.Module):
             dropout=dropout_rate
 
         )
-        self.rnn = torch.nn.GRU(input_size=2560,
-                                hidden_size=30,
-                                num_layers=1,
-                                bidirectional=True,
-                                batch_first=True,
-                                dropout=dropout_rate
-                                )
+        
         self.lstm_norm = nn.LayerNorm(512 * 2)  # For bidirectional output
+
 
 
 
@@ -180,16 +161,11 @@ class ACPNet(nn.Module):
         self.conv3 = GCNConv(hidden_dim, hidden_dim)
 
         self.gcn = nn.ModuleList([
-            MultiScaleGCN(593 + 512, hidden_dim),
+            MultiScaleGCN(100 + 512, hidden_dim),
             MultiScaleGCN(hidden_dim, hidden_dim)
         ])
 
         self.pool = TopKPooling(in_channels=hidden_dim, ratio=0.5)
-
-
-
-
-
 
         self.fc = nn.Linear(hidden_dim, output_dim)
 
@@ -236,28 +212,15 @@ class ACPNet(nn.Module):
         lstm_out,_ = self.lstm(esm_batch)
 
         lstm_out = self.lstm_norm(lstm_out)
-        esm_batch = esm_batch.permute(0, 2, 1)
-
         lstm_out = lstm_out
-
-
-
         lstm_out = lstm_out.permute(0,2,1)
-
         TCN_out= self.temporalConvNet1(lstm_out)
-
-        z0 = lstm_out
-
         f_list = []
-        e_list = []
-
         for i, n in enumerate(n_num):
-            # print(i, n)
+           
             f = TCN_out[i][:, :n]
             f_list.append(f)
 
-            e_list.append(TCN_out[i])
-        z1 = e_list
 
         emb = torch.cat(f_list, dim=1).permute(1, 0)
         emb_out = global_mean_pool(emb, batch)
@@ -270,7 +233,7 @@ class ACPNet(nn.Module):
         edge_index = edge_index.clone().detach()
 
         x = self.gcn[0](cat, edge_index)
-        x, edge_index, edge_attr, batch, perm, scor = self.pool(x, edge_index, batch=batch)
+        x, edge_index, edge_attr, batch, perm, score,all_score = self.pool(x, edge_index, batch=batch)
         x = self.gcn[1](x, edge_index)
 
 
@@ -286,8 +249,5 @@ class ACPNet(nn.Module):
 
 
         return torch.sigmoid(x), lstm_out,emb_out,cat_out,x1
-
-
-
 
 
