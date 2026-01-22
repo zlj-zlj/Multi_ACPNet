@@ -194,33 +194,22 @@ def load_data(fasta_path, npz_dir, threshold=37, label=1, add_self_loop=True):
     position_encodings = position_encoding(seqs)
     pssm_dir = '/'.join(fasta_path.split('/')[:-1]) + '/blos/'
 
-    esm_dir = '/'.join(fasta_path.split('/')[:-1]) + '/esm_t33/'
+    esm_dir = '/'.join(fasta_path.split('/')[:-1]) + '/esmc_600m/'
     esm_encondings = esm_encoding(ids, esm_dir)
     AAindexx_econdings = aaindex_ecoding(seqs)
+    selected_indices = np.array([109, 268, 396, 92, 282, 14, 269, 220, 58, 307, 332, 56, 327, 405, 415, 84, 472, 238,
+                                 485, 86, 299, 187, 433, 292, 443, 266, 64, 103, 280, 340, 48, 106, 257, 481, 91, 400,
+                                 267, 449, 217, 399, 499, 54, 445, 23, 391, 314, 218, 40, 101, 291, 473, 422, 226, 265,
+                                 442, 36, 414, 154, 426, 172, ])
+    AAindexx_econdings_selected = []
+    for feat in AAindexx_econdings:
+        # 选择指定的特征维度
+        selected_feat = feat[:, selected_indices]
+        AAindexx_econdings_selected.append(selected_feat)
 
-
-
-    # corr_matrix = np.corrcoef(pssm_encodings[0], rowvar=False)  # 计算特征间相关系数
-
-    # 可视化
-
-    # import matplotlib.pyplot as plt
-    # import seaborn as sns
-    #
-    # plt.figure(figsize=(12, 10))
-    # sns.heatmap(corr_matrix, cmap='coolwarm')
-    # plt.title("ESM Feature Correlation Matrix")
-    # plt.show()
-
-    # hhm_dir = '/'.join(fasta_path.split('/')[:-1]) + '/npz_no_hhm/'
-    # hhm_encodings = hhm_encoding(ids, hhm_dir)
+    AAindexx_econdings = AAindexx_econdings_selected
     Xs_cnn = esm_encondings
-    # Xs_cnn = pad(Xs_cnn)
-
-
     Xs_gcn = cat(one_hot_encodings, position_encodings,AAindexx_econdings)
-    # Xs_gcn = cat(one_hot_encodings, AAindexx_econdings)
-
     n_samples = len(As)
     data_list = []
     for i in range(n_samples):
