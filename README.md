@@ -1,7 +1,8 @@
 # Multi_ACPNet
 Multi_ACPNet is a dual-function predictor capable of both anticancer peptide identification (ACP/non-ACP) and anticancer peptide function prediction (multi-label classification), The corresponding research paper is ***Multi-ACPNet: A Multi-scale Sequence-Structure Feature Fusion Framework for Anticancer Peptide Identification and Functional Prediction.***
 ## Download 
-You need to download the ESM-2 model from: https://huggingface.co/facebook/esm2_t33_650M_UR50D.
+Download the dataset at https://drive.google.com/file/d/1QYvZQR1WNHGIhw5gFxseeRkAqyFbcmC3/view?usp=drive_link.
+
 Additionally, download trRosetta from: https://github.com/gjoni/trRosetta and place the model in the "utils/trRosetta" directory.
 ## Requirements
 The main packages and their versions used in this project are as follows:
@@ -29,3 +30,4 @@ To predict whether ACPs show activity against the seven cancer types (Colon, Bre
 ```
 python predict.py --task 2
 ```
+
