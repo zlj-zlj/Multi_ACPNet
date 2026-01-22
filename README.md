@@ -3,7 +3,7 @@ Multi_ACPNet is a dual-function predictor capable of both anticancer peptide ide
 ## Download 
 Download the dataset at https://drive.google.com/file/d/1QYvZQR1WNHGIhw5gFxseeRkAqyFbcmC3/view?usp=drive_link.
 
-Additionally, download trRosetta from: https://github.com/gjoni/trRosetta and place the model in the "utils/trRosetta" directory.
+Download trRosetta from: https://github.com/gjoni/trRosetta and place the model in the "utils/trRosetta" directory.
 ## Requirements
 The main packages and their versions used in this project are as follows:
 ```
@@ -30,4 +30,5 @@ To predict whether ACPs show activity against the seven cancer types (Colon, Bre
 ```
 python predict.py --task 2
 ```
+
 
